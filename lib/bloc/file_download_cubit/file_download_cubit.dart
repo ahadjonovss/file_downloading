@@ -23,9 +23,7 @@ class FileDownloadCubit extends Cubit<FileDownloadState> {
             file.fileUrl,
             "$downloadedImagePath${file.fileName}",
             onReceiveProgress: (rec, total) async{
-              await Future.delayed(const Duration(milliseconds: 100));
               num progress=rec/total;
-              print("Downloading");
               emitProgress(progress);
               if(rec == total){
                 getIt<NotificationCubit>().sendNotification(isFinished: true);

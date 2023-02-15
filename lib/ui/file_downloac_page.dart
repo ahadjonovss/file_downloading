@@ -8,14 +8,19 @@ class FileDownloadPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("FileDownloading Page"),),
+      backgroundColor: Colors.white.withOpacity(0.86),
+      appBar: AppBar(
+        title: Text("FileDownloading Page",style: TextStyle(color: Colors.black),),
+        elevation: 0,
+        backgroundColor: Colors.white.withOpacity(0.9),
+      ),
       body: Column(
         children: [
           ListView.builder(
             shrinkWrap: true,
             itemCount: files.length,
-            itemBuilder: (context, index) => FileItemWidget(file: files[index]),)
-
+            itemBuilder: (context, index) => FileItemWidget(file: files[index]),
+          )
         ],
       ),
     );

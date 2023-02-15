@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'dart:isolate';
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:file_downloading/bloc/notification_cubit/notification_cubit.dart';
@@ -12,24 +12,32 @@ part 'file_download_state.dart';
 class FileDownloadCubit extends Cubit<FileDownloadState> {
   FileDownloadCubit() : super(FileDownloadInitial());
 
+  var downloadedImagePath = '/storage/emulated/0/Download/';
 
-  Future<void> downloadFile({required downloadedImagePath, required FileModel file}) async {
+
+
+  void downloadFile({required FileModel file})  async {
+     await Isolate.run( await _fileDownloader(file: file));
+    Isolate.exit();
+  }
+
+  _fileDownloader({required FileModel file}) async {
     Dio dio = getIt<Dio>();
     try {
       bool isExist = await File("$downloadedImagePath${file.fileName}").exists();
       if(!isExist){
         getIt<NotificationCubit>().sendNotification();
         await dio.download(
-            file.fileUrl,
-            "$downloadedImagePath${file.fileName}",
-            onReceiveProgress: (rec, total) async{
-              num progress=rec/total;
-              emitProgress(progress);
-              if(rec == total){
-                getIt<NotificationCubit>().sendNotification(isFinished: true);
-                emit(FileDownloadInSuccessState());
-              }
-            },
+          file.fileUrl,
+          "$downloadedImagePath${file.fileName}",
+          onReceiveProgress: (rec, total) async{
+            num progress=rec/total;
+            emitProgress(progress);
+            if(rec == total){
+              getIt<NotificationCubit>().sendNotification(isFinished: true);
+              emit(FileDownloadInSuccessState());
+            }
+          },
         );
       }
       else{

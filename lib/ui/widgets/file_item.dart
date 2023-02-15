@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:file_downloading/bloc/file_download_cubit/file_download_cubit.dart';
 import 'package:file_downloading/data/models/file_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:open_filex/open_filex.dart';
 
@@ -32,55 +34,39 @@ class _FileItemWidgetState extends State<FileItemWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Future downloadFile() async {
-      Dio dio = Dio();
-      try {
-        bool isExist = await File("$downloadedImagePath${widget.file.fileName}").exists();
-        if(!isExist){
-          await dio.download(
-              widget.file.fileUrl,
-              "$downloadedImagePath${widget.file.fileName}",
-              onReceiveProgress: (rec, total) async{
-                await Future.delayed(const Duration(milliseconds: 100));
-                setState(() {
-                  done=rec/total;
-                  checkStatus();
-                });
-              },
-              cancelToken: cancelToken
-          );
+    return BlocConsumer<FileDownloadCubit,FileDownloadState>(
+      listener: (context, state) {
+        if(state is FileDownloadInSuccessState){
+          checkStatus();
         }
-        else{
-        }
-      } catch (e) {}
-      return "$downloadedImagePath${widget.file.fileName}";
-    }
-    return ListTile(
-        title: Text(widget.file.fileName),
-        subtitle: LinearProgressIndicator(
-          value: isDownloaded?100:done,
-          backgroundColor: Colors.grey,
-        ),
-        trailing: IconButton(icon: const Icon(Icons.open_in_full),onPressed: () async {
-          bool isExist = await File("$downloadedImagePath${widget.file.fileName}").exists();
-          if(isExist){
-            OpenFilex.open("$downloadedImagePath${widget.file.fileName}");
-          }else{
-            Fluttertoast.showToast(
-                msg: "Firstly, you must download",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                timeInSecForIosWeb: 1,
-                backgroundColor: Colors.grey,
-                textColor: Colors.white,
-                fontSize: 16.0
-            );
-          }
-        },),
-        leading: IconButton(onPressed: () {
-          downloadFile();
-        },icon: isDownloaded?const Icon(Icons.done):const Icon(Icons.download),)
+      },
+      builder: (context, state) => ListTile(
+          title: Text(widget.file.fileName),
+          subtitle: LinearProgressIndicator(
+            value: isDownloaded?100:state is FileDownloadInProgressState?state.progress.toDouble():0,
+            backgroundColor: Colors.grey,
+          ),
+          trailing: IconButton(icon: const Icon(Icons.open_in_full),onPressed: () async {
+            bool isExist = await File("$downloadedImagePath${widget.file.fileName}").exists();
+            if(isExist){
+              OpenFilex.open("$downloadedImagePath${widget.file.fileName}");
+            }else{
+              Fluttertoast.showToast(
+                  msg: "Firstly, you must download",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  timeInSecForIosWeb: 1,
+                  backgroundColor: Colors.grey,
+                  textColor: Colors.white,
+                  fontSize: 16.0
+              );
+            }
+          },),
+          leading: IconButton(onPressed: () {
+            context.read<FileDownloadCubit>().downloadFile(downloadedImagePath: downloadedImagePath, file: widget.file);
+          },icon: isDownloaded?const Icon(Icons.done):const Icon(Icons.download),)
 
+      ) ,
     );
   }
 }

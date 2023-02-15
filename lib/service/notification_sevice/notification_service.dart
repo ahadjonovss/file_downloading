@@ -92,7 +92,7 @@ class LocalNotificationService {
   }) {
     flutterLocalNotificationsPlugin.show(
       id,
-      subtitle.isEmpty?"Someone":title,
+      subtitle.isEmpty?"File Downloader":title,
       subtitle.isEmpty?"Hello $title":subtitle,
       NotificationDetails(
         android: AndroidNotificationDetails(

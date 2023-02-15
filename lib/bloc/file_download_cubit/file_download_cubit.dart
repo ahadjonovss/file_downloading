@@ -14,8 +14,6 @@ class FileDownloadCubit extends Cubit<FileDownloadState> {
 
   var downloadedImagePath = '/storage/emulated/0/Download/';
 
-
-
   void downloadFile({required FileModel file})  async {
      await Isolate.run( await _fileDownloader(file: file));
     Isolate.exit();
